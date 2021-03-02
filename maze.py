@@ -1,4 +1,7 @@
+#!/usr/bin/python
+
 import random
+import argparse
 
 from PIL import Image, ImageDraw
 
@@ -16,7 +19,7 @@ class Maze:
     def __init__(self, width=20, height=20, cell_width=20):
         self.width = width
         self.height = height
-        self.cell_width = cell_width
+        self.cw = cell_width
         self.cells = [[Cell() for _ in range(height)] for _ in range(width)]
 
     def generate(self):
@@ -77,30 +80,49 @@ class Maze:
         if direction == 'west':
             return x - 1, y
 
-    def draw(self):
-        canvas_width, canvas_height = self.cell_width * self.width, self.cell_width * self.height
-        im = Image.new('RGB', (canvas_width, canvas_height))
+    def draw(self, background_color='white', line_color='black'):
+        canvas_width, canvas_height = self.cw * self.width, self.cw * self.height
+        im = Image.new('RGB', (canvas_width, canvas_height), color=background_color)
         draw = ImageDraw.Draw(im)
 
         for x in range(self.width):
             for y in range(self.height):
                 if self.cells[x][y].north:
                     draw.line(
-                        (x * self.cell_width, y * self.cell_width, (x + 1) * self.cell_width, y * self.cell_width))
+                        (x * self.cw, y * self.cw, (x + 1) * self.cw, y * self.cw), line_color)
                 if self.cells[x][y].south:
-                    draw.line((x * self.cell_width, (y + 1) * self.cell_width, (x + 1) * self.cell_width,
-                               (y + 1) * self.cell_width))
+                    draw.line((x * self.cw, (y + 1) * self.cw, (x + 1) * self.cw,
+                               (y + 1) * self.cw), line_color)
                 if self.cells[x][y].east:
-                    draw.line(((x + 1) * self.cell_width, y * self.cell_width, (x + 1) * self.cell_width,
-                               (y + 1) * self.cell_width))
+                    draw.line(((x + 1) * self.cw, y * self.cw, (x + 1) * self.cw,
+                               (y + 1) * self.cw), line_color)
                 if self.cells[x][y].west:
                     draw.line(
-                        (x * self.cell_width, y * self.cell_width, x * self.cell_width, (y + 1) * self.cell_width))
+                        (x * self.cw, y * self.cw, x * self.cw, (y + 1) * self.cw), line_color)
 
         im.show()
 
 
 if __name__ == '__main__':
-    maze = Maze()
+    parser = argparse.ArgumentParser(description='maze')
+
+    parser.add_argument('width', type=int,
+                        default=20,
+                        help='Maze width')
+
+    parser.add_argument('height', type=int,
+                        default=20,
+                        help='Maze height')
+
+    parser.add_argument('--background-color', type=str,
+                        required=False, default='white',
+                        help='Background color')
+
+    parser.add_argument('--line-color', type=str,
+                        required=False, default='black',
+                        help='Line color')
+
+    args = parser.parse_args()
+    maze = Maze(width=args.width, height=args.height)
     maze.generate()
-    maze.draw()
+    maze.draw(args.background_color, args.line_color)
